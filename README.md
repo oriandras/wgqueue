@@ -1,0 +1,2 @@
+# wgqueue
+Levélkiküldés menedzselő eszköz.
