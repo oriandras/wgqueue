@@ -1,15 +1,9 @@
 @extends('adminlte::page')
-
 @section('title', 'Műszerfal')
-
-@section('content_header')
-    <h1>WGQueue Műszerfal</h1>
-@stop
-
 @section('content')
     <div class="row">
-        <div class="col-md-12">
-            @livewire('calendar-view')
+        <div class="col-12">
+            <p>Itt hamarosan izgalmas statisztikák fognak megjelenni...</p>
         </div>
     </div>
 @stop

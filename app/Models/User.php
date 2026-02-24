@@ -46,4 +46,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function settings()
+    {
+        // HasOne kapcsolat: egy usernek egy beállítása van
+        return $this->hasOne(UserSetting::class, 'user_id');
+    }
 }
