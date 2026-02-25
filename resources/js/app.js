@@ -2,11 +2,11 @@ import './bootstrap';
 import Swal from 'sweetalert2'; // <--- EZT ADD HOZZÁ
 window.Swal = Swal; // Hogy globálisan is elérhető legyen
 
-import Alpine from 'alpinejs';
+/*import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
 
-Alpine.start();
+Alpine.start();*/
 
 document.addEventListener('livewire:initialized', () => {
     // Általános figyelő minden típusú swal eseményhez

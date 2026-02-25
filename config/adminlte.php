@@ -374,6 +374,12 @@ return [
             'icon' => 'fas fa-fw fa-cogs',
             'can'  => 'admin',
         ],
+        [
+            'text' => 'Felhasználók',
+            'url'  => 'admin/users',
+            'icon' => 'fas fa-fw fa-users',
+            'can'  => 'admin',
+        ]
     ],
 
     /*

@@ -1,14 +1,13 @@
 @extends('adminlte::page')
 
-@section('title', 'Rendszerbeállítások')
+@section('title', 'Felhasználók kezelése')
 
 @section('content_header')
-    <h1>Rendszerbeállítások</h1>
+    <h1>Felhasználók kezelése</h1>
 @stop
 
 @section('content')
-    {{-- Itt hívjuk meg a korábban megírt Volt komponenst --}}
-    <livewire:system-settings />
+    <livewire:user-management />
 @stop
 @section('footer')
     <div class="float-right d-none d-sm-block">

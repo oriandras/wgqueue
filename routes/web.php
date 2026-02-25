@@ -43,6 +43,8 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->group(function () {
 
     // Ez lesz a https://wgqueue.test/admin/settings
     Route::view('/settings', 'admin.settings')->name('admin.settings');
+    Route::view('/users', 'admin.users')->name('admin.users');
+    Route::view('/users/create', 'admin.users-create')->name('admin.users.create');
 
     // Itt kezdődik a logs alcsoport
     Route::prefix('logs')->name('admin.logs.')->group(function () {
