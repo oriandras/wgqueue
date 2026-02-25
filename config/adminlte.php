@@ -367,7 +367,13 @@ return [
                     'icon' => 'fas fa-fw fa-exclamation-triangle',
                 ],
             ],
-        ]
+        ],
+        [
+            'text' => 'Beállítások',
+            'url'  => 'admin/settings',
+            'icon' => 'fas fa-fw fa-cogs',
+            'can'  => 'admin',
+        ],
     ],
 
     /*

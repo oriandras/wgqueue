@@ -39,9 +39,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'can:admin'])->prefix('admin/logs')->name('admin.logs.')->group(function () {
-    Route::view('/activity', 'admin.logs.activity')->name('activity');
-    Route::view('/errors', 'admin.logs.errors')->name('errors');
+Route::middleware(['auth', 'can:admin'])->prefix('admin')->group(function () {
+
+    // Ez lesz a https://wgqueue.test/admin/settings
+    Route::view('/settings', 'admin.settings')->name('admin.settings');
+
+    // Itt kezdődik a logs alcsoport
+    Route::prefix('logs')->name('admin.logs.')->group(function () {
+        Route::view('/activity', 'admin.logs.activity')->name('activity');
+        Route::view('/errors', 'admin.logs.errors')->name('errors');
+    });
 });
 
 require __DIR__ . '/auth.php';

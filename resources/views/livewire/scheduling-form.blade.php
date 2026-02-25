@@ -4,6 +4,9 @@ use App\Models\MailScheduling;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\ActivityLog;
+use App\Models\MaintenanceWindow;
+use App\Mail\SystemNotification;
+use Illuminate\Support\Facades\Mail;
 
 state(['schedulingId' => null, 'start_time' => '', 'mail_count' => '', 'subject' => '', 'group_name' => '']);
 
@@ -65,6 +68,39 @@ $save = function () {
             $this->addError('mail_count', "Munkaidőben óránként max $limitPerHour levél mehet ki! Jelenleg ebben az órában: $alreadyScheduled db van.");
             return;
         }
+    }
+
+// 3.5. BACKEND: Zárolt időszak (Maintenance Window) ellenőrzése
+    $maintenanceConflict = MaintenanceWindow::where(function ($query) use ($startTime, $endTime) {
+        $query->where('start_time', '<', $endTime)
+            ->where('end_time', '>', $startTime);
+    })->first();
+
+    if ($maintenanceConflict) {
+        // 1. Email címek lekérése a beállításokból
+        $serverEmail = \App\Models\SystemSetting::get('server_team_email');
+        $maintainerEmail = \App\Models\SystemSetting::get('maintainer_email');
+
+        // Csak akkor küldünk, ha legalább az egyik cím be van állítva
+        $recipients = array_filter([$serverEmail, $maintainerEmail]);
+
+        if (!empty($recipients)) {
+            $warningMail = app()->make(SystemNotification::class, [
+                'title' => 'RIASZTÁS: Tiltott ütemezési kísérlet',
+                'message' => "Egy felhasználó (" . auth()->user()->name . ") megpróbált kiküldést ütemezni egy zárolt időszakra!\n\n" .
+                    "Időszak neve: " . $maintenanceConflict->title . "\n" .
+                    "Kampány tárgya: " . $this->subject . "\n" .
+                    "Tervezett kezdés: " . $startTime->format('Y-m-d H:i'),
+                'buttonUrl' => route('admin.logs.errors'), // Rögtön a hibanaplóra mutatunk
+                'buttonText' => 'Rendszernapló ellenőrzése'
+            ]);
+
+            Mail::to($recipients)->send($warningMail);
+        }
+
+        // A felhasználónak csak egy általános hibaüzenetet mutatunk
+        $this->addError('start_time', "Sajnos ez az időszak rendszerkarbantartás miatt foglalt.");
+        return;
     }
 
     // 4. BACKEND: Ütközésvizsgálat (Egymásra lapolás tiltása)
