@@ -55,4 +55,37 @@
 @section('adminlte_js')
     @stack('js')
     @yield('js')
+    <script>
+        let idleTimer;
+        const timeoutDuration = 10 * 60 * 1000; // 10 perc
+
+        function resetTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                // Létrehozunk egy rejtett formot a POST kéréshez
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{{ route('logout') }}";
+
+                // Hozzáadjuk a CSRF tokent, ami a Laravelnek kell
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = "{{ csrf_token() }}";
+
+                form.appendChild(csrfToken);
+                document.body.appendChild(form);
+
+                alert('A munkamenet lejárt biztonsági okokból. Kérjük, jelentkezzen be újra!');
+                form.submit(); // POST küldése
+            }, timeoutDuration);
+        }
+
+        // Aktivitás figyelők maradnak
+        window.onload = resetTimer;
+        window.onmousemove = resetTimer;
+        window.onmousedown = resetTimer;
+        window.onclick = resetTimer;
+        window.onkeydown = resetTimer;
+    </script>
 @stop

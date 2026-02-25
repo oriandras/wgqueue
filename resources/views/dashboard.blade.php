@@ -46,6 +46,7 @@
                     <a href="{{ url('scheduling/calendar') }}" class="small-box-footer">Összes megtekintése naptárban <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
+            <livewire:online-users />
         </div>
 
         <div class="col-md-5">
@@ -74,7 +75,7 @@
                 </div>
             </div>
         </div>
-    </div>
+     </div>
 @stop
 
 @section('footer')
