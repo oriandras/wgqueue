@@ -256,13 +256,13 @@ return [
     |
     */
 
-    'use_route_url' => false,
-    'dashboard_url' => 'home',
+    'use_route_url' => true,
+    'dashboard_url' => 'dashboard',
     'logout_url' => 'logout',
     'login_url' => 'login',
     'register_url' => 'register',
-    'password_reset_url' => 'password/reset',
-    'password_email_url' => 'password/email',
+    'password_reset_url' => 'password.request',
+    'password_email_url' => 'password.email',
     'profile_url' => false,
     'disable_darkmode_routes' => false,
 
@@ -283,8 +283,8 @@ return [
     */
 
     'laravel_asset_bundling' => false,
-    'laravel_css_path' => 'css/app.css',
-    'laravel_js_path' => 'js/app.js',
+    'laravel_css_path' => 'resources/css/app.css',
+    'laravel_js_path' => 'resources/js/app.js',
 
     /*
     |--------------------------------------------------------------------------
@@ -325,6 +325,11 @@ return [
                     'text' => 'Naptár nézet',
                     'url'  => 'scheduling/calendar',
                     'icon' => 'fas fa-fw fa-calendar-alt',
+                ],
+                [
+                    'text' => 'Új kiküldés rögzítése',
+                    'url'  => 'scheduling/create',
+                    'icon' => 'fas fa-fw fa-plus-circle',
                 ],
                 [
                     'text' => 'Levélkiküldéseim',
@@ -428,12 +433,12 @@ return [
             ],
         ],
         'Sweetalert2' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',
                     'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/sweetalert2@8',
+                    'location' => '//cdn.jsdelivr.net/npm/sweetalert2@11',
                 ],
             ],
         ],
@@ -499,5 +504,5 @@ return [
     |
     */
 
-    'livewire' => false,
+    'livewire' => true,
 ];
