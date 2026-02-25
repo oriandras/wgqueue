@@ -3,6 +3,9 @@ use function Livewire\Volt\{state, updated, computed, usesPagination};
 use App\Models\MailScheduling;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Models\UserSetting;
+use App\Mail\SystemNotification;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 usesPagination(theme: 'bootstrap');
@@ -38,7 +41,7 @@ updated(['selectAll' => function ($value) {
 
 // Beállítások mentése
 updated(['perPage' => function ($value) {
-    \App\Models\UserSetting::updateOrCreate(
+    UserSetting::updateOrCreate(
         ['user_id' => auth()->id()],
         ['datatable_per_page' => $value]
     );
@@ -54,8 +57,10 @@ $sortBy = function ($field) {
     }
 };
 
-// ADMIN TÖMEGES TÖRLÉS LOGOLÁSSAL
+// ADMIN TÖMEGES TÖRLÉS LOGOLÁSSAL ÉS ÉRTESÍTÉSSEL
 $bulkDeleteAny = function () {
+    if (empty($this->selectedRows)) return;
+
     $toDelete = MailScheduling::whereIn('id', $this->selectedRows)
         ->where('start_time', '>', now())
         ->with('user')
@@ -63,20 +68,34 @@ $bulkDeleteAny = function () {
 
     $count = $toDelete->count();
     foreach ($toDelete as $item) {
+        // 1. Logolás
         ActivityLog::create([
             'user_id' => auth()->id(),
             'action' => 'Admin Tömeges Törlés',
-            'description' => "Admin törölte: {$item->subject} (Tulajdonos: " . ($item->user->name ?? 'Ismeretlen') . ")",
+            'description' => "Admin törölte: " . $item->subject . " (Tulajdonos: " . ($item->user->name ?? 'Ismeretlen') . ")",
         ]);
+
+        // 2. Értesítés küldése (app()->make-el a szintaktikai hiba elkerülésére)
+        if ($item->user && $item->user->email) {
+            $mailable = app()->make(SystemNotification::class, [
+                'title' => 'Ütemezett kiküldés törölve',
+                'message' => "Értesítünk, hogy a(z) '" . $item->subject . "' tárgyú, " . $item->start_time . " időpontra ütemezett kiküldésedet egy adminisztrátor eltávolította a rendszerből.",
+                'buttonUrl' => route('scheduling.list'),
+                'buttonText' => 'Saját listám megnyitása'
+            ]);
+            Mail::to($item->user->email)->send($mailable);
+        }
+
+        // 3. Törlés
         $item->delete();
     }
 
     $this->selectedRows = [];
     $this->selectAll = false;
-    $this->dispatch('swal:success', message: "$count elem sikeresen törölve a rendszerből.");
+    $this->dispatch('swal:success', message: $count . " elem sikeresen törölve a rendszerből.");
 };
 
-// A KOMPLEX LEKÉRDEZÉSED (Minden szűrő megtartva)
+// A KOMPLEX LEKÉRDEZÉSED
 $allMailings = computed(function () {
     return MailScheduling::with('user')
         ->when($this->f_user, function($q) {
@@ -96,13 +115,12 @@ $allMailings = computed(function () {
 });
 ?>
 
-<div> {{-- Root element --}}
+<div>
     <div class="card card-danger card-outline">
         <div class="card-header d-flex align-items-center">
             <h3 class="card-title mr-auto">Rendszerszintű kiküldések</h3>
 
             <div class="card-tools d-flex">
-                {{-- DINAMIKUS MŰVELETI GOMBOK --}}
                 @if(count($selectedRows) > 0)
                     <div class="btn-group mr-2">
                         @if(count($selectedRows) === 1)
@@ -129,7 +147,7 @@ $allMailings = computed(function () {
 
         <div class="card-body p-0">
             <table class="table table-bordered table-hover m-0">
-                <thead class="thead-light">
+                <thead class="thead-light text-nowrap">
                 <tr>
                     <th style="width: 40px" class="text-center">
                         <input type="checkbox" wire:model.live="selectAll">
@@ -149,7 +167,6 @@ $allMailings = computed(function () {
                     <th>Státusz</th>
                     <th style="width: 50px"></th>
                 </tr>
-                {{-- SZŰRŐ SOR --}}
                 <tr class="bg-light">
                     <td></td>
                     <td><input type="text" wire:model.live="f_user" class="form-control form-control-sm" placeholder="Név..."></td>
