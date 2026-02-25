@@ -39,4 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware(['auth', 'can:admin'])->prefix('admin/logs')->name('admin.logs.')->group(function () {
+    Route::view('/activity', 'admin.logs.activity')->name('activity');
+    Route::view('/errors', 'admin.logs.errors')->name('errors');
+});
+
 require __DIR__ . '/auth.php';

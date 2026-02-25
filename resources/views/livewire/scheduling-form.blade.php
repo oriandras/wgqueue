@@ -9,7 +9,13 @@ state(['schedulingId' => null, 'start_time' => '', 'mail_count' => '', 'subject'
 
 mount(function ($id = null) {
     if ($id) {
-        $item = MailScheduling::where('user_id', auth()->id())->find($id);
+        // Ha admin, bárkiét láthatja, ha nem, csak a sajátját
+        $query = auth()->user()->is_admin
+            ? MailScheduling::query()
+            : MailScheduling::where('user_id', auth()->id());
+
+        $item = $query->find($id);
+
         if ($item) {
             $this->schedulingId = $item->id;
             $this->start_time = Carbon::parse($item->start_time)->format('Y-m-d\TH:i');
