@@ -29,10 +29,19 @@ Route::get('/scheduling/create', function () {
     return view('scheduling.create');
 })->middleware(['auth']);
 
+Route::get('/scheduling/edit/{id}', function ($id) {
+    return view('scheduling.edit', ['id' => $id]);
+})->name('scheduling.edit')->middleware(['auth']);
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['auth', 'can:admin'])->prefix('admin/logs')->name('admin.logs.')->group(function () {
+    Route::view('/activity', 'admin.logs.activity')->name('activity');
+    Route::view('/errors', 'admin.logs.errors')->name('errors');
 });
 
 require __DIR__ . '/auth.php';

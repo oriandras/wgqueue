@@ -349,6 +349,24 @@ return [
             'text' => 'Profilom',
             'url' => 'admin/settings',
             'icon' => 'fas fa-fw fa-user',
+        ],
+        ['header' => 'Rendszer kezelés'],
+        [
+            'text' => 'Naplózás',
+            'icon' => 'fas fa-fw fa-database',
+            'can'  => 'admin',
+            'submenu' => [
+                [
+                    'text' => 'Tevékenység napló',
+                    'url'  => 'admin/logs/activity',
+                    'icon' => 'fas fa-fw fa-history',
+                ],
+                [
+                    'text' => 'Hiba napló',
+                    'url'  => 'admin/logs/errors',
+                    'icon' => 'fas fa-fw fa-exclamation-triangle',
+                ],
+            ],
         ]
     ],
 

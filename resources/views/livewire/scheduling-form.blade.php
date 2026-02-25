@@ -1,10 +1,30 @@
 <?php
-use function Livewire\Volt\{state, action};
+use function Livewire\Volt\{state, action, mount};
 use App\Models\MailScheduling;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\ActivityLog;
 
-state(['start_time' => '', 'mail_count' => '', 'subject' => '', 'group_name' => '']);
+state(['schedulingId' => null, 'start_time' => '', 'mail_count' => '', 'subject' => '', 'group_name' => '']);
+
+mount(function ($id = null) {
+    if ($id) {
+        // Ha admin, bárkiét láthatja, ha nem, csak a sajátját
+        $query = auth()->user()->is_admin
+            ? MailScheduling::query()
+            : MailScheduling::where('user_id', auth()->id());
+
+        $item = $query->find($id);
+
+        if ($item) {
+            $this->schedulingId = $item->id;
+            $this->start_time = Carbon::parse($item->start_time)->format('Y-m-d\TH:i');
+            $this->mail_count = $item->mail_count;
+            $this->subject = $item->subject;
+            $this->group_name = $item->group_name;
+        }
+    }
+});
 
 $save = function () {
     // 1. Alap validáció
@@ -59,24 +79,44 @@ $save = function () {
         return;
     }
 
-    // 5. Mentés
-    MailScheduling::create([
-        'user_id' => auth()->id(),
-        'start_time' => $this->start_time,
-        'mail_count' => $this->mail_count,
-        'subject' => $this->subject,
-        'group_name' => $this->group_name,
-    ]);
-    \App\Models\ActivityLog::create([
-        'user_id' => auth()->id(),
-        'action' => 'Ütemezés',
-        'description' => 'Új kiküldés rögzítve: ' . $this->subject,
-    ]);
-    // Értesítés küldése a SweetAlert-nek
-    $this->dispatch('swal:success', message: 'Sikeres foglalás!');
-    $this->dispatch('calendar-updated'); // Naptár frissítése
+    if ($this->schedulingId) {
+        $item = MailScheduling::find($this->schedulingId);
+        $item->update([
+            'start_time' => $this->start_time,
+            'mail_count' => $this->mail_count,
+            'subject' => $this->subject,
+            'group_name' => $this->group_name,
+        ]);
 
-    $this->reset();
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'Módosítás',
+            'description' => "Módosítva: {$this->subject}",
+        ]);
+
+        session()->flash('success', 'Sikeresen frissítve!');
+        return redirect()->route('scheduling.list');
+    } else {
+        // 5. Mentés
+        MailScheduling::create([
+            'user_id' => auth()->id(),
+            'start_time' => $this->start_time,
+            'mail_count' => $this->mail_count,
+            'subject' => $this->subject,
+            'group_name' => $this->group_name,
+        ]);
+        \App\Models\ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'Ütemezés',
+            'description' => 'Új kiküldés rögzítve: ' . $this->subject,
+        ]);
+
+        // Értesítés küldése a SweetAlert-nek
+        $this->dispatch('swal:success', message: 'Sikeres foglalás!');
+        $this->dispatch('calendar-updated'); // Naptár frissítése
+
+        $this->reset();
+    }
 };
 ?>
 
@@ -109,8 +149,8 @@ $save = function () {
             @error('group_name') <span class="text-danger small">{{ $message }}</span> @enderror
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block shadow-sm">
-            <i class="fas fa-save mr-1"></i> Kiküldés ütemezése
+        <button type="submit" class="btn btn-primary btn-block">
+            <i class="fas fa-save mr-1"></i> {{ $schedulingId ? 'Módosítások mentése' : 'Kiküldés ütemezése' }}
         </button>
     </form>
 </div>
