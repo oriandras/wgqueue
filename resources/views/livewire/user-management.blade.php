@@ -129,6 +129,10 @@ $users = computed(function () {
                                     class="btn btn-default btn-sm">
                                 <i class="fas fa-key text-warning"></i>
                             </button>
+
+                            <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-default btn-sm" title="Szerkesztés">
+                                <i class="fas fa-edit text-info"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>

@@ -34,9 +34,7 @@ Route::get('/scheduling/edit/{id}', function ($id) {
 })->name('scheduling.edit')->middleware(['auth']);
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::view('/profile', 'profile')->name('profile');
 });
 
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->group(function () {
@@ -45,6 +43,7 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->group(function () {
     Route::view('/settings', 'admin.settings')->name('admin.settings');
     Route::view('/users', 'admin.users')->name('admin.users');
     Route::view('/users/create', 'admin.users-create')->name('admin.users.create');
+    Route::view('/users/{id}/edit', 'admin.users-edit')->name('admin.users.edit');
 
     // Itt kezdődik a logs alcsoport
     Route::prefix('logs')->name('admin.logs.')->group(function () {

@@ -347,7 +347,7 @@ return [
         ['header' => 'Beállítások'],
         [
             'text' => 'Profilom',
-            'url' => 'admin/settings',
+            'url' => 'profile',
             'icon' => 'fas fa-fw fa-user',
         ],
         ['header' => 'Rendszer kezelés'],
