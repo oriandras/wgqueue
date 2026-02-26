@@ -1,10 +1,18 @@
 <?php
+/**
+ * Felhasználó szerkesztése Livewire (Volt) komponens.
+ * Lehetővé teszi az adminisztrátorok számára a felhasználói adatok (név, e-mail, státusz) módosítását.
+ */
 use function Livewire\Volt\{state, mount};
 use App\Models\User;
 use App\Models\ActivityLog;
 
+// Komponens állapota
 state(['userId' => null, 'name' => '', 'email' => '', 'is_active' => true]);
 
+/**
+ * Komponens inicializálása az ID alapján.
+ */
 mount(function ($id) {
     $user = User::findOrFail($id);
     $this->userId = $user->id;
@@ -13,20 +21,26 @@ mount(function ($id) {
     $this->is_active = $user->is_active ?? true;
 });
 
+/**
+ * Módosítások mentése az adatbázisba.
+ */
 $save = function () {
     $user = User::findOrFail($this->userId);
 
+    // Bemeneti adatok validálása
     $this->validate([
         'name' => 'required|min:3',
         'email' => 'required|email|unique:sys_users,email,' . $user->id,
     ]);
 
+    // Adatok frissítése
     $user->update([
         'name' => $this->name,
         'email' => $this->email,
         'is_active' => $this->is_active,
     ]);
 
+    // Tevékenység naplózása
     ActivityLog::create([
         'user_id' => auth()->id(),
         'action' => 'User Szerkesztés',
@@ -41,6 +55,7 @@ $save = function () {
 <div class="row">
     <div class="col-md-6">
         <div class="card card-info card-outline">
+            {{-- Felhasználói adatok szerkesztése űrlap --}}
             <form wire:submit.prevent="save">
                 <div class="card-body">
                     <div class="form-group">
@@ -55,6 +70,7 @@ $save = function () {
                     </div>
                     <div class="form-group">
                         <label>Státusz</label>
+                        {{-- TODO: Legyen lehetőség a felhasználó jelszavának módosítására is itt --}}
                         <select wire:model="is_active" class="form-control">
                             <option value="1">Aktív</option>
                             <option value="0">Felfüggesztve</option>

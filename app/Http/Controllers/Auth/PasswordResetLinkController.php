@@ -8,10 +8,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
 
+/**
+ * A jelszó-visszaállítási link igényléséért felelős vezérlő.
+ */
 class PasswordResetLinkController extends Controller
 {
     /**
-     * Display the password reset link request view.
+     * Megjeleníti a jelszó-visszaállítási link igényléséhez szükséges felületet.
      */
     public function create(): View
     {
@@ -19,19 +22,19 @@ class PasswordResetLinkController extends Controller
     }
 
     /**
-     * Handle an incoming password reset link request.
+     * Kezeli a jelszó-visszaállítási linkre vonatkozó bejövő kérelmet.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
+        // Az e-mail cím validálása
         $request->validate([
             'email' => ['required', 'email'],
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
+        // Jelszó-visszaállítási link küldése. A válasz alapján
+        // értesítjük a felhasználót a művelet sikerességéről vagy hibájáról.
         $status = Password::sendResetLink(
             $request->only('email')
         );

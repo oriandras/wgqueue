@@ -9,10 +9,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
+/**
+ * A jelszó megerősítéséért felelős vezérlő (biztonságos műveletek előtt).
+ */
 class ConfirmablePasswordController extends Controller
 {
     /**
-     * Show the confirm password view.
+     * Megjeleníti a jelszó megerősítéséhez szükséges felületet.
      */
     public function show(): View
     {
@@ -20,10 +23,11 @@ class ConfirmablePasswordController extends Controller
     }
 
     /**
-     * Confirm the user's password.
+     * Kezeli a felhasználó jelszavának megerősítését.
      */
     public function store(Request $request): RedirectResponse
     {
+        // Jelszó ellenőrzése
         if (! Auth::guard('web')->validate([
             'email' => $request->user()->email,
             'password' => $request->password,
@@ -33,6 +37,7 @@ class ConfirmablePasswordController extends Controller
             ]);
         }
 
+        // Megerősítés időpontjának tárolása a munkamenetben
         $request->session()->put('auth.password_confirmed_at', time());
 
         return redirect()->intended(route('dashboard', absolute: false));

@@ -9,12 +9,15 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Ütemezés létrehozásáról szóló értesítő levél.
+ */
 class SchedulingCreated extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Új üzenet példány létrehozása.
      */
     public function __construct()
     {
@@ -22,27 +25,27 @@ class SchedulingCreated extends Mailable
     }
 
     /**
-     * Get the message envelope.
+     * Az üzenet borítékának (envelope) meghatározása.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Scheduling Created',
+            subject: 'Ütemezés létrehozva', // Az e-mail tárgya
         );
     }
 
     /**
-     * Get the message content definition.
+     * Az üzenet tartalmának meghatározása.
      */
     public function content(): Content
     {
         return new Content(
-            view: 'view.name',
+            view: 'emails.scheduling-created', // Levél sablon elérési útja
         );
     }
 
     /**
-     * Get the attachments for the message.
+     * Az üzenethez tartozó mellékletek lekérése.
      *
      * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */

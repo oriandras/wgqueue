@@ -1,3 +1,8 @@
+{{--
+    Kezdőoldal (Welcome) nézet.
+    Az alkalmazás publikus nyitóoldala, amely a bejelentkezéshez és
+    regisztrációhoz biztosít linkeket.
+--}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>

@@ -1,3 +1,7 @@
+{{--
+    Felhasználói fiók törlése rész.
+    Megjelenít egy figyelmeztetést és egy gombot, amely megnyit egy megerősítő modalt a jelszó bekéréséhez.
+--}}
 <section class="space-y-6">
     <header>
         <h2 class="text-lg font-medium text-gray-900">
@@ -9,11 +13,13 @@
         </p>
     </header>
 
+    {{-- Törlés gomb, amely megnyitja a modalt --}}
     <x-danger-button
         x-data=""
         x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
     >{{ __('Delete Account') }}</x-danger-button>
 
+    {{-- Megerősítő modal a törléshez --}}
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
         <form method="post" action="{{ route('profile.destroy') }}" class="p-6">
             @csrf
@@ -28,6 +34,7 @@
             </p>
 
             <div class="mt-6">
+                {{-- Jelszó megerősítés mező --}}
                 <x-input-label for="password" value="{{ __('Password') }}" class="sr-only" />
 
                 <x-text-input
@@ -42,14 +49,18 @@
             </div>
 
             <div class="mt-6 flex justify-end">
+                {{-- Mégse gomb --}}
                 <x-secondary-button x-on:click="$dispatch('close')">
                     {{ __('Cancel') }}
                 </x-secondary-button>
 
+                {{-- Végleges törlés gomb --}}
                 <x-danger-button class="ms-3">
                     {{ __('Delete Account') }}
                 </x-danger-button>
             </div>
         </form>
     </x-modal>
+
+    {{-- TODO: A fiók törlése előtt érdemes lenne ellenőrizni, hogy van-e függőben lévő ütemezése a felhasználónak --}}
 </section>

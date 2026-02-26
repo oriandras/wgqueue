@@ -1,4 +1,9 @@
 <?php
+/**
+ * Admin ütemezés lista Livewire (Volt) komponens.
+ * Lehetővé teszi az összes kiküldés listázását, szűrését, rendezését,
+ * kijelölés kezelését, valamint tömeges törlést értesítéssel és naplózással.
+ */
 use function Livewire\Volt\{state, updated, computed, usesPagination};
 use App\Models\MailScheduling;
 use App\Models\ActivityLog;

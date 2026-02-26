@@ -8,18 +8,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * A felhasználói jelszó frissítéséért felelős vezérlő.
+ */
 class PasswordController extends Controller
 {
     /**
-     * Update the user's password.
+     * Frissíti a felhasználó jelszavát.
      */
     public function update(Request $request): RedirectResponse
     {
+        // Jelszó adatok validálása külön hibazsákba (updatePassword)
         $validated = $request->validateWithBag('updatePassword', [
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
+        // Az új jelszó titkosítása és mentése
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);

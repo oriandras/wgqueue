@@ -4,6 +4,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+/**
+ * Az alkalmazás konfigurálása és inicializálása.
+ * Itt határozzuk meg az útvonalakat, a middleware-eket és a kivételkezelést.
+ */
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -11,20 +15,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // A webes middleware csoport kiegészítése az utolsó aktivitást frissítő osztállyal
         $middleware->web(append: [
             \App\Http\Middleware\UpdateLastSeen::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        // Egyedi hibajelentési logika definiálása
         $exceptions->reportable(function (\Throwable $e) {
-            // 1. Ha konzolból futunk, vagy nincs DB kapcsolat, azonnal álljunk le
+            // Ha konzolból fut az alkalmazás, vagy nincs adatbázis kapcsolat, ne naplózzunk az adatbázisba
             if (app()->runningInConsole() || !app()->bound('db')) {
                 return;
             }
 
             try {
-                // 2. NE használjunk Facade-ot (Schema::), mert az okozza a crasht!
-                // Inkább csak próbáljuk meg elmenteni, és ha nem sikerül, a catch elkapja.
+                // A hiba adatainak mentése a 'sys_errors' táblába
+                // Közvetlen DB query-t használunk a Facade root hibák elkerülése érdekében a hiba jelentésekor
                 \Illuminate\Support\Facades\DB::table('sys_errors')->insert([
                     'user_id' => auth()->id(),
                     'message' => $e->getMessage(),
@@ -33,8 +39,8 @@ return Application::configure(basePath: dirname(__DIR__))
                     'created_at' => now(),
                 ]);
             } catch (\Throwable $fallbackException) {
-                // Ha bármi hiba van (pl. nincs meg a tábla), némán maradjunk,
-                // hogy ne okozzunk "Facade root" hibát az eredeti hiba helyett.
+                // Ha a naplózás közben is hiba történik (pl. hiányzó tábla), némán kezeljük,
+                // hogy ne írjuk felül az eredeti hibaüzenetet egy újabbal.
             }
         });
     })->create();

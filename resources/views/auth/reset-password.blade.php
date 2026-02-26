@@ -1,25 +1,29 @@
+{{--
+    Jelszó visszaállítása nézet.
+    A felhasználó a kapott token segítségével beállíthat új jelszót.
+--}}
 <x-guest-layout>
     <form method="POST" action="{{ route('password.store') }}">
         @csrf
 
-        <!-- Password Reset Token -->
+        {{-- Visszaállító token --}}
         <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-        <!-- Email Address -->
+        {{-- E-mail cím --}}
         <div>
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <!-- Password -->
+        {{-- Új jelszó --}}
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />
             <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Confirm Password -->
+        {{-- Új jelszó megerősítése --}}
         <div class="mt-4">
             <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
 
@@ -31,9 +35,12 @@
         </div>
 
         <div class="flex items-center justify-end mt-4">
+            {{-- Küldés gomb --}}
             <x-primary-button>
                 {{ __('Reset Password') }}
             </x-primary-button>
         </div>
     </form>
+
+    {{-- TODO: Jelszókövetelmények (erősség, min. hossz) megjelenítése segítő szövegként --}}
 </x-guest-layout>

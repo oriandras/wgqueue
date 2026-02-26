@@ -1,3 +1,7 @@
+{{--
+    Profil információk frissítése rész.
+    Név és e-mail módosítása, valamint e-mail ellenőrzés újraküldése, ha szükséges.
+--}}
 <section>
     <header>
         <h2 class="text-lg font-medium text-gray-900">
@@ -9,27 +13,32 @@
         </p>
     </header>
 
+    {{-- E-mail megerősítő levél újraküldését kezdeményező rejtett űrlap --}}
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
         @csrf
     </form>
 
+    {{-- Profil adatok mentésére szolgáló űrlap --}}
     <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
         @csrf
         @method('patch')
 
         <div>
+            {{-- Név mező a jelenlegi értékkel feltöltve --}}
             <x-input-label for="name" :value="__('Name')" />
             <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
 
         <div>
+            {{-- E-mail mező és hibakezelés --}}
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div>
+                    {{-- Értesítés a nem megerősített e-mail címről és gomb az újraküldéshez --}}
                     <p class="text-sm mt-2 text-gray-800">
                         {{ __('Your email address is unverified.') }}
 
@@ -48,6 +57,7 @@
         </div>
 
         <div class="flex items-center gap-4">
+            {{-- Mentés gomb és rövid ideig megjelenő visszajelzés --}}
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 
             @if (session('status') === 'profile-updated')
@@ -61,4 +71,6 @@
             @endif
         </div>
     </form>
+
+    {{-- TODO: A statikus, angol szövegeket helyezzük el külön nyelvi fájlokban, ha nincs még fordítás --}}
 </section>

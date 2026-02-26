@@ -1,12 +1,17 @@
+{{--
+    Bejelentkező oldal nézet.
+    Az AdminLTE alapú bejelentkező felület, amely az e-mail címet és a jelszót kéri be.
+--}}
 @extends('adminlte::auth.auth-page', ['auth_type' => 'login'])
 
 @section('auth_header', 'Bejelentkezés a rendszerbe')
 
 @section('auth_body')
+    {{-- Bejelentkező űrlap --}}
     <form action="{{ route('login') }}" method="post">
         @csrf
 
-        {{-- Email mező --}}
+        {{-- E-mail cím mező ikonnal és hiba visszajelzéssel --}}
         <div class="input-group mb-3">
             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
                    value="{{ old('email') }}" placeholder="Email" required autofocus>
@@ -16,13 +21,13 @@
                 </div>
             </div>
             @error('email')
-            <span class="invalid-feedback" role="alert">
+                <span class="invalid-feedback" role="alert">
                     <strong>{{ $message }}</strong>
                 </span>
             @enderror
         </div>
 
-        {{-- Jelszó mező --}}
+        {{-- Jelszó mező ikonnal --}}
         <div class="input-group mb-3">
             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
                    placeholder="Jelszó" required>
@@ -32,13 +37,13 @@
                 </div>
             </div>
             @error('password')
-            <span class="invalid-feedback" role="alert">
+                <span class="invalid-feedback" role="alert">
                     <strong>{{ $message }}</strong>
                 </span>
             @enderror
         </div>
 
-        {{-- Emlékezz rám és Belépés gomb --}}
+        {{-- "Emlékezz rám" opció és a belépés gomb --}}
         <div class="row">
             <div class="col-8">
                 <div class="icheck-primary">
@@ -47,6 +52,7 @@
                 </div>
             </div>
             <div class="col-4">
+                {{-- Belépés indítása --}}
                 <button type="submit" class="btn btn-primary btn-block">Belépés</button>
             </div>
         </div>
@@ -54,7 +60,7 @@
 @stop
 
 @section('auth_footer')
-    {{-- Itt pótoljuk a hiányzó linkeket --}}
+    {{-- További navigációs lehetőségek (elfelejtett jelszó, regisztráció) --}}
     <p class="mb-1">
         <a href="{{ route('password.request') }}">Elfelejtettem a jelszavam</a>
     </p>

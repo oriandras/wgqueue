@@ -9,10 +9,13 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A bejelentkezési kérelmet kezelő FormRequest osztály.
+ */
 class LoginRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Meghatározza, hogy a felhasználó jogosult-e a kérelem végrehajtására.
      */
     public function authorize(): bool
     {
@@ -20,7 +23,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Visszaadja a kérelemre vonatkozó validációs szabályokat.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
@@ -33,7 +36,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Megkísérli a kérelem hitelesítési adatainak ellenőrzését.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -53,7 +56,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Ensure the login request is not rate limited.
+     * Ellenőrzi, hogy a bejelentkezési kérelem nem lépi-e túl a sebességkorlátot.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -76,7 +79,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get the rate limiting throttle key for the request.
+     * Lekéri a kérelemhez tartozó sebességkorlátozási kulcsot.
      */
     public function throttleKey(): string
     {

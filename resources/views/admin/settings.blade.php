@@ -1,3 +1,8 @@
+{{--
+    Rendszerbeállítások nézet.
+    Ez az oldal az alkalmazás globális beállításait tartalmazza,
+    amelyeket egy Livewire (Volt) komponens szolgál ki.
+--}}
 @extends('adminlte::page')
 
 @section('title', 'Rendszerbeállítások')
@@ -7,10 +12,11 @@
 @stop
 
 @section('content')
-    {{-- Itt hívjuk meg a korábban megírt Volt komponenst --}}
+    {{-- A globális rendszerbeállításokat kezelő Livewire komponens --}}
     <livewire:system-settings />
 @stop
 @section('footer')
+    {{-- Oldalbetöltési idő megjelenítése --}}
     <div class="float-right d-none d-sm-block">
         <b>Oldalbetöltés:</b> {{ number_format(microtime(true) - LARAVEL_START, 3) }} mp
     </div>

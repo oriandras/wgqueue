@@ -1,3 +1,8 @@
+{{--
+    Vezérlőpult nézet.
+    Itt láthatóak a felhasználó közelgő ütemezései, az online felhasználók
+    és a saját tevékenységnapló bejegyzései.
+--}}
 @extends('adminlte::page')
 
 @section('title', 'Dashboard')
@@ -9,6 +14,7 @@
 @section('content')
     <div class="row">
         <div class="col-md-7">
+            {{-- Közelgő ütemezett kiküldések kártya --}}
             <div class="card card-primary card-outline">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-clock mr-1"></i> Közelgő ütemezett kiküldéseid</h3>
@@ -24,6 +30,7 @@
                         </thead>
                         <tbody>
                         @php
+                            // A bejelentkezett felhasználó következő 5 ütemezett kiküldésének lekérése
                             $upcoming = \App\Models\MailScheduling::where('user_id', auth()->id())
                                 ->where('start_time', '>', now())
                                 ->orderBy('start_time', 'asc')
@@ -32,6 +39,7 @@
                         @endphp
                         @forelse($upcoming as $mail)
                             <tr>
+                                {{-- TODO: A dátumformázást érdemes lenne a modellben vagy egy helperben kezelni --}}
                                 <td>{{ \Carbon\Carbon::parse($mail->start_time)->format('m.d. H:i') }}</td>
                                 <td>{{ $mail->subject }}</td>
                                 <td><span class="badge bg-primary">{{ $mail->mail_count }}</span></td>
@@ -46,10 +54,13 @@
                     <a href="{{ url('scheduling/calendar') }}" class="small-box-footer">Összes megtekintése naptárban <i class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
+
+            {{-- Online felhasználók Livewire komponens --}}
             <livewire:online-users />
         </div>
 
         <div class="col-md-5">
+            {{-- Tevékenységnapló kártya --}}
             <div class="card card-info">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-history mr-1"></i> Tevékenységnapló (Log)</h3>
@@ -57,6 +68,7 @@
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
                         @php
+                            // A felhasználó utolsó 10 tevékenységének lekérése
                             $logs = \App\Models\ActivityLog::where('user_id', auth()->id())
                                 ->orderBy('created_at', 'desc')
                                 ->take(10)
@@ -79,6 +91,7 @@
 @stop
 
 @section('footer')
+    {{-- Oldalbetöltési idő megjelenítése --}}
     <div class="float-right d-none d-sm-block">
         <b>Oldalbetöltés:</b> {{ number_format(microtime(true) - LARAVEL_START, 3) }} mp
     </div>

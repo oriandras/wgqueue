@@ -9,12 +9,20 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Rendszerértesítések küldésére szolgáló levél osztály.
+ */
 class SystemNotification extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Új üzenet példány létrehozása.
+     *
+     * @param string $title Az értesítés címe (e-mail tárgya)
+     * @param string $message Az értesítés szöveges tartalma
+     * @param string|null $buttonUrl Opcionális gomb URL címe
+     * @param string|null $buttonText Opcionális gomb felirata
      */
     public function __construct(
         public string $title,
@@ -24,27 +32,27 @@ class SystemNotification extends Mailable
     ) {}
 
     /**
-     * Get the message envelope.
+     * Az üzenet borítékának (envelope) meghatározása.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->title, // Az email tárgya a megadott cím lesz
+            subject: $this->title, // Az e-mail tárgya a megadott cím lesz
         );
     }
 
     /**
-     * Get the message content definition.
+     * Az üzenet tartalmának meghatározása.
      */
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.system-notification',
+            markdown: 'emails.system-notification', // Markdown sablon használata
         );
     }
 
     /**
-     * Get the attachments for the message.
+     * Az üzenethez tartozó mellékletek lekérése.
      *
      * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */

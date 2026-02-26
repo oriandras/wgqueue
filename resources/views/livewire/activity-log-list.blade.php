@@ -1,15 +1,22 @@
 <?php
+/**
+ * Tevékenységnapló lista Livewire (Volt) komponens.
+ * Szűrést és lapozást biztosít a felhasználói aktivitás bejegyzésekhez.
+ */
 use function Livewire\Volt\{state, computed, usesPagination};
 use App\Models\ActivityLog;
 
+// Bootstrap alapú lapozás
 usesPagination(theme: 'bootstrap');
 
+// Szűrők és rendezési beállítások
 state([
     'f_user' => '', 'f_action' => '', 'f_date' => '',
     'sortField' => 'created_at', 'sortDirection' => 'desc',
     'perPage' => 15
 ]);
 
+// Naplóbejegyzések lekérése szűrőkkel
 $allLogs = computed(fn() => ActivityLog::with('user')
     ->when($this->f_user, fn($q) => $q->whereHas('user', fn($sq) => $sq->where('name', 'like', "%{$this->f_user}%")))
     ->when($this->f_action, fn($q) => $q->where('action', 'like', "%{$this->f_action}%"))
@@ -21,6 +28,7 @@ $allLogs = computed(fn() => ActivityLog::with('user')
 
 <div class="card card-outline card-info">
     <div class="card-body p-0">
+        {{-- Tevékenységek táblázata --}}
         <table class="table table-bordered table-sm m-0">
             <thead class="thead-light">
             <tr>
@@ -30,6 +38,7 @@ $allLogs = computed(fn() => ActivityLog::with('user')
                 <th>Időpont</th>
             </tr>
             <tr class="bg-light">
+                {{-- Szűrő mezők --}}
                 <td><input wire:model.live="f_user" class="form-control form-control-sm" placeholder="Szűrés..."></td>
                 <td><input wire:model.live="f_action" class="form-control form-control-sm" placeholder="Művelet..."></td>
                 <td></td>
@@ -51,6 +60,7 @@ $allLogs = computed(fn() => ActivityLog::with('user')
     <div class="card-footer">{{ $this->allLogs->links() }}</div>
 </div>
 <script>
+    // Példa: modal megnyitása Livewire eseményre
     document.addEventListener('livewire:initialized', () => {
         Livewire.on('open-modal', (event) => {
             $('#' + event.id).modal('show');

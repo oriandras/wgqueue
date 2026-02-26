@@ -6,15 +6,28 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-use Carbon\Carbon; // <--- Ez hiányzik a Carbon-hoz
-use Illuminate\Support\Facades\DB; // <--- Ez hiányzik a DB facade-hoz
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
+/**
+ * Az e-mailek ütemezéséért felelős modell.
+ */
 class MailScheduling extends Model
 {
     use SoftDeletes, LogsActivity;
 
+    /**
+     * A modellhez tartozó tábla neve.
+     *
+     * @var string
+     */
     protected $table = 'sch_mail_schedulings';
 
+    /**
+     * A tömegesen kitölthető mezők listája.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'start_time',
@@ -25,7 +38,9 @@ class MailScheduling extends Model
     ];
 
     /**
-     * Activity Log beállítása (US 2)
+     * Az Activity Log beállításai.
+     *
+     * @return \Spatie\Activitylog\LogOptions
      */
     public function getActivitylogOptions(): LogOptions
     {
@@ -36,28 +51,33 @@ class MailScheduling extends Model
     }
 
     /**
-     * US 1: Logika a kiküldés végének kiszámításához.
+     * A modell eseményeinek regisztrálása.
+     *
+     * @return void
      */
     protected static function booted()
     {
         static::creating(function ($scheduling) {
-            // 1. Lekérjük a percenkénti limitet az adatbázisból (vagy alapértelmezett 100)
+            // TODO: A percenkénti limitet érdemes lenne cache-elni vagy konstansba tenni a sűrű lekérdezések elkerülése érdekében.
+            // A percenkénti limit lekérése a beállításokból (alapértelmezett: 100)
             $limitPerMinute = (int) (DB::table('sys_settings')
                 ->where('key', 'mails_per_minute')
                 ->value('value') ?? 100);
 
-            // 2. Kiszámoljuk az időtartamot (mail_count / limit)
+            // Az időtartam kiszámítása (levélszám / limit)
             // A ceil() felfelé kerekít, hogy minden megkezdett perc le legyen foglalva
             $durationMinutes = ceil($scheduling->mail_count / $limitPerMinute);
 
-            // 3. Beállítjuk a számított végidőpontot a Carbon segítségével
+            // A számított végidőpont beállítása
             $scheduling->calculated_end_time = Carbon::parse($scheduling->start_time)
                 ->addMinutes($durationMinutes);
         });
     }
 
     /**
-     * Kapcsolat a felhasználóhoz
+     * Az ütemezéshez kapcsolódó felhasználó lekérése.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user()
     {

@@ -6,10 +6,13 @@ use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A felhasználói profil frissítéséhez szükséges kérelem osztálya.
+ */
 class ProfileUpdateRequest extends FormRequest
 {
     /**
-     * Get the validation rules that apply to the request.
+     * Visszaadja a kérelemre vonatkozó validációs szabályokat.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */

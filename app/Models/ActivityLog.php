@@ -4,19 +4,34 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * A rendszertevékenységek naplózásáért felelős modell.
+ */
 class ActivityLog extends Model
 {
-    // Megadjuk a tábla pontos nevét (mivel sys_ előtagot használtunk)
+    /**
+     * A modellhez tartozó tábla neve.
+     *
+     * @var string
+     */
     protected $table = 'sys_activity_logs';
 
-    // Engedélyezzük a mezők tömeges feltöltését
+    /**
+     * A tömegesen kitölthető mezők listája.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'action',
         'description',
     ];
 
-    // Kapcsolat a felhasználóval (opcionális, de hasznos)
+    /**
+     * A tevékenységhez kapcsolódó felhasználó lekérése.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

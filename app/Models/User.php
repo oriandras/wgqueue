@@ -7,16 +7,25 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * A felhasználói adatokat és hitelesítést kezelő modell.
+ */
 class User extends Authenticatable
 {
+    /**
+     * A modellhez tartozó tábla neve.
+     *
+     * @var string
+     */
     protected $table = 'sys_users';
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * A tömegesen kitölthető mezők listája.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -27,9 +36,9 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * A szerializáció során rejtett attribútumok.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -37,7 +46,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Az attribútumok típusátalakítása.
      *
      * @return array<string, string>
      */
@@ -48,9 +57,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * A felhasználóhoz tartozó beállítások lekérése.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
     public function settings()
     {
-        // HasOne kapcsolat: egy usernek egy beállítása van
         return $this->hasOne(UserSetting::class, 'user_id');
     }
 }
