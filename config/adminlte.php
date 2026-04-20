@@ -160,9 +160,9 @@ return [
     'menu' => [
         // Keresés és teljes képernyő a fejlécben
         [
-            'type' => 'navbar-search',
-            'text' => 'search',
-            'topnav_right' => true,
+            //'type' => 'navbar-search',
+            //'text' => 'search',
+            //'topnav_right' => true,
         ],
         [
             'type' => 'fullscreen-widget',
