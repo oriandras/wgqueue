@@ -70,26 +70,43 @@ $save = function () {
 
     // Rendszerbeállítások lekérése a számításokhoz
     $settings = DB::table('sys_settings')->pluck('value', 'key');
+
+    // Az adatbázisból vesszük: ha nincs benne, csak akkor legyen 1000 az alapértelmezett
     $limitPerMinute = (int)($settings['mails_per_minute'] ?? 100);
-    $limitPerHour = 1000; // Fix limit óránként
+    $limitPerHour = (int)($settings['hourly_limit'] ?? 1000);
+
+    // Kiszámoljuk, mennyi idő kell a kiküldéshez a két limit közül a szigorúbbat választva
+    $minutesByMinutelyLimit = $this->mail_count / $limitPerMinute;
+    $minutesByHourlyLimit = ($this->mail_count / $limitPerHour) * 60;
+
+    // A kettő közül a nagyobbat vesszük alapul (ez a "legszűkebb keresztmetszet")
+    $durationMinutes = ceil(max($minutesByMinutelyLimit, $minutesByHourlyLimit));
+    $endTime = $startTime->copy()->addMinutes($durationMinutes);
+
     $workStart = (int)($settings['work_start'] ?? 8);
     $workEnd = (int)($settings['work_end'] ?? 17);
 
     // Várható végidőpont kiszámítása (levélszám / percenkénti limit)
-    $durationMinutes = ceil($this->mail_count / $limitPerMinute);
-    $endTime = $startTime->copy()->addMinutes($durationMinutes);
+    //$durationMinutes = ceil($this->mail_count / $limitPerMinute);
+    //$endTime = $startTime->copy()->addMinutes($durationMinutes);
 
     // 3. Munkaidő óránkénti limit ellenőrzése (pl. max 1000 levél/óra)
-    if ($startTime->hour >= $workStart && $startTime->hour < $workEnd) {
-        $alreadyScheduled = MailScheduling::whereBetween('start_time', [
-            $startTime->copy()->startOfHour(),
-            $startTime->copy()->endOfHour()
-        ])->sum('mail_count');
+// Most már csak azt nézzük, hogy az ÚJ beküldés önmagában nem lépi-e túl a limitet
+// (De mivel a duration-t ehhez igazítottuk, ez a check csak akkor kell,
+// ha több különálló kiküldés torlódna egy órába)
 
-        if (($alreadyScheduled + $this->mail_count) > $limitPerHour) {
-            $this->addError('mail_count', "Munkaidőben óránként max $limitPerHour levél mehet ki! Jelenleg ebben az órában: $alreadyScheduled db van.");
-            return;
-        }
+    $alreadyScheduled = MailScheduling::whereBetween('start_time', [
+        $startTime->copy()->startOfHour(),
+        $startTime->copy()->endOfHour()
+    ])->when($this->schedulingId, fn($q) => $q->where('id', '!=', $this->schedulingId))
+        ->sum('mail_count');
+
+// Ha az óránkénti limit 1, és te 1-nél többet küldesz, akkor a tartam
+// automatikusan több óra lesz. Itt most csak azt korlátozzuk,
+// hogy az ADOTT ÓRÁBAN ne induljon el több párhuzamos dolog, ha betelt a keret.
+    if ($alreadyScheduled >= $limitPerHour) {
+        $this->addError('start_time', "Ebben az órában már betelt a keret ($alreadyScheduled/$limitPerHour levél).");
+        return;
     }
 
     // 4. Zárolt időszak (Maintenance Window) ellenőrzése
@@ -140,6 +157,7 @@ $save = function () {
         $item = MailScheduling::find($this->schedulingId);
         $item->update([
             'start_time' => $this->start_time,
+            'calculated_end_time' => $endTime,
             'mail_count' => $this->mail_count,
             'subject' => $this->subject,
             'group_name' => $this->group_name,
@@ -158,6 +176,7 @@ $save = function () {
         MailScheduling::create([
             'user_id' => auth()->id(),
             'start_time' => $this->start_time,
+            'calculated_end_time' => $endTime,
             'mail_count' => $this->mail_count,
             'subject' => $this->subject,
             'group_name' => $this->group_name,

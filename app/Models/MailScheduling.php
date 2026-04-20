@@ -57,18 +57,23 @@ class MailScheduling extends Model
      */
     protected static function booted()
     {
-        static::creating(function ($scheduling) {
-            // TODO: A percenkénti limitet érdemes lenne cache-elni vagy konstansba tenni a sűrű lekérdezések elkerülése érdekében.
-            // A percenkénti limit lekérése a beállításokból (alapértelmezett: 100)
-            $limitPerMinute = (int) (DB::table('sys_settings')
-                ->where('key', 'mails_per_minute')
-                ->value('value') ?? 100);
+        static::saving(function ($scheduling) {
+            // Ha manuálisan már beállítottuk a végidőpontot a formban,
+            // és az nagyobb, mint amit a perces limit adna, akkor ne bántsuk.
+            // Vagy egyszerűen tegyük ide is bele a teljes logikát:
 
-            // Az időtartam kiszámítása (levélszám / limit)
-            // A ceil() felfelé kerekít, hogy minden megkezdett perc le legyen foglalva
-            $durationMinutes = ceil($scheduling->mail_count / $limitPerMinute);
+            $settings = DB::table('sys_settings')->pluck('value', 'key');
 
-            // A számított végidőpont beállítása
+            $limitPerMinute = (int)($settings['mails_per_minute'] ?? 100);
+            $limitPerHour = (int)($settings['hourly_limit'] ?? 1000);
+
+            // Kiszámoljuk mindkét limit alapján
+            $minByMinute = $scheduling->mail_count / $limitPerMinute;
+            $minByHour = ($scheduling->mail_count / $limitPerHour) * 60;
+
+            // A szigorúbbat alkalmazzuk
+            $durationMinutes = ceil(max($minByMinute, $minByHour));
+
             $scheduling->calculated_end_time = Carbon::parse($scheduling->start_time)
                 ->addMinutes($durationMinutes);
         });
