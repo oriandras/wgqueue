@@ -27,35 +27,81 @@ state([
     'f_count' => '',
     'f_status' => '',
 ]);
+    /**
+     * Figyeljük a "Mindet kijelöl" checkbox változását.
+     */
+    updated(['selectAll' => function ($value) {
+        if ($value) {
+            // Aktuális oldal ID-k begyűjtése stringként
+            $this->selectedRows = $this->mailings->getCollection()
+                ->pluck('id')
+                ->map(fn($id) => (string)$id)
+                ->toArray();
+        } else {
+            $this->selectedRows = [];
+        }
+    }]);
 
-/**
- * Kijelölt elemek tömeges törlése.
- * Csak a jövőbeli, még el nem kezdődött kiküldések törölhetők.
- */
-$bulkDelete = function () {
-    if (empty($this->selectedRows)) return;
+    /**
+     * Figyeljük az egyedi kijelöléseket.
+     */
+    updated(['selectedRows' => function ($value) {
+        // Az aktuális oldalon lévő ID-k stringként
+        $currentIds = $this->mailings->getCollection()
+            ->pluck('id')
+            ->map(fn($id) => (string)$id)
+            ->toArray();
 
-    $toDelete = MailScheduling::whereIn('id', $this->selectedRows)
-        ->where('user_id', auth()->id())
-        ->where('start_time', '>', now()) // Csak a jövőbeliek
-        ->get();
+        // Ellenőrizzük, hogy az összes aktuális ID benne van-e a kijelöltek között
+        $allSelected = count(array_intersect($currentIds, $this->selectedRows)) === count($currentIds);
 
-    foreach ($toDelete as $item) {
-        // Tevékenység naplózása
-        ActivityLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'Tömeges törlés',
-            'description' => "Törölve: {$item->subject}",
-        ]);
-        $item->delete();
-    }
+        $this->selectAll = (count($currentIds) > 0 && $allSelected);
+    }]);
+    /**
+     * Kijelölt elemek tömeges törlése.
+     * Csak a jövőbeli, még el nem kezdődött kiküldések törölhetők.
+     */
+    $bulkDelete = function () {
+        if (empty($this->selectedRows)) return;
 
-    // Állapot alaphelyzetbe állítása
-    $this->selectedRows = [];
-    $this->selectAll = false;
-    $this->dispatch('swal:success', message: 'Törlés sikeres.');
-};
+        // 1. Megnézzük, hányat akart törölni
+        $totalSelected = count($this->selectedRows);
 
+        // 2. Lekérjük azokat, amik VALÓBAN törölhetők (jövőbeliek)
+        $toDelete = MailScheduling::whereIn('id', $this->selectedRows)
+            ->where('user_id', auth()->id())
+            ->where('start_time', '>', now())
+            ->get();
+
+        $deletedCount = $toDelete->count();
+
+        // 3. Ha egyet sem találtunk, ami törölhető lenne
+        if ($deletedCount === 0) {
+            $this->dispatch('swal:error', message: 'Hiba: Csak a jövőbeli, még el nem kezdődött ütemezések törölhetők!');
+            return;
+        }
+
+        // 4. Törlés végrehajtása
+        foreach ($toDelete as $item) {
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'Tömeges törlés',
+                'description' => "Törölve: {$item->subject}",
+            ]);
+            $item->delete();
+        }
+
+        // Állapot frissítése
+        $this->selectedRows = [];
+        $this->selectAll = false;
+
+        // 5. Differenciált visszajelzés
+        if ($deletedCount < $totalSelected) {
+            $this->dispatch('swal:warning', message: "Sikeresen törölve: $deletedCount ütemezés. A már lezárult/folyamatban lévő elemeket biztonsági okokból megőriztük.");
+        } else {
+            $this->dispatch('swal:success', message: 'A kijelölt ütemezések sikeresen törölve.');
+        }
+    };
 /**
  * A bejelentkezett felhasználó kiküldéseinek lekérése a szűrők alapján.
  */
@@ -118,10 +164,16 @@ $mailings = computed(function () {
                 </thead>
                 <tbody>
                 @forelse($this->mailings as $mailing)
-                    <tr class="{{ in_array($mailing->id, $selectedRows) ? 'table-warning' : '' }}">
+                    <tr wire:key="mailing-{{ $mailing->id }}" class="{{ in_array((string)$mailing->id, $selectedRows) ? 'table-warning' : '' }}">
                         <td class="text-center">
                             {{-- Egyedi kijelölés checkbox --}}
-                            <input type="checkbox" wire:model.live="selectedRows" value="{{ (string)$mailing->id }}">
+                            <input type="checkbox"
+                                   id="checkbox-{{ $mailing->id }}"
+                                   wire:key="checkbox-{{ $mailing->id }}"
+                                   wire:model.live="selectedRows"
+                                   value="{{ (string)$mailing->id }}"
+                                   {{-- Kényszerített vizuális szinkron --}}
+                                   :checked="in_array('{{ $mailing->id }}', selectedRows)">
                         </td>
                         <td>{{ Carbon::parse($mailing->start_time)->format('Y.m.d. H:i') }}</td>
                         <td>{{ $mailing->subject }}</td>
