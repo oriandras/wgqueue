@@ -3,7 +3,7 @@
  * Tevékenységnapló lista Livewire (Volt) komponens.
  * Szűrést és lapozást biztosít a felhasználói aktivitás bejegyzésekhez.
  */
-use function Livewire\Volt\{state, computed, usesPagination};
+use function Livewire\Volt\{state, updated, computed, usesPagination};
 use App\Models\ActivityLog;
 
 // Bootstrap alapú lapozás
@@ -15,6 +15,9 @@ state([
     'sortField' => 'created_at', 'sortDirection' => 'desc',
     'perPage' => 15
 ]);
+updated(['f_user' => fn() => $this->resetPage()]);
+updated(['f_action' => fn() => $this->resetPage()]);
+updated(['f_date' => fn() => $this->resetPage()]);
 
 // Naplóbejegyzések lekérése szűrőkkel
 $allLogs = computed(fn() => ActivityLog::with('user')
@@ -39,10 +42,16 @@ $allLogs = computed(fn() => ActivityLog::with('user')
             </tr>
             <tr class="bg-light">
                 {{-- Szűrő mezők --}}
-                <td><input wire:model.live="f_user" class="form-control form-control-sm" placeholder="Szűrés..."></td>
-                <td><input wire:model.live="f_action" class="form-control form-control-sm" placeholder="Művelet..."></td>
+                <td>
+                    <input wire:model.live.debounce.500ms="f_user" class="form-control form-control-sm" placeholder="Szűrés...">
+                </td>
+                <td>
+                    <input wire:model.live.debounce.500ms="f_action" class="form-control form-control-sm" placeholder="Művelet...">
+                </td>
                 <td></td>
-                <td><input type="date" wire:model.live="f_date" class="form-control form-control-sm"></td>
+                <td>
+                    <input type="date" wire:model.live="f_date" class="form-control form-control-sm">
+                </td>
             </tr>
             </thead>
             <tbody>
